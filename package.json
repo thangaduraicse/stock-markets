@@ -15,6 +15,7 @@
     "email": "duraithanga3@gmail.com"
   },
   "license": "MIT",
+  "type": "module",
   "scripts": {
     "start": "node dist",
     "build": "babel src --out-dir dist",
@@ -24,7 +25,9 @@
     "upgrade:package": "ncu -u"
   },
   "dependencies": {
-    "axios": "^1.4.0"
+    "adm-zip": "0.5.10",
+    "axios": "1.4.0",
+    "winston": "^3.10.0"
   },
   "devDependencies": {
     "@babel/cli": "7.22.9",
