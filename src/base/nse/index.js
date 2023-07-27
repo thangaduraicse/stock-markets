@@ -82,7 +82,7 @@ class NSEIndia {
         return response.data;
       } catch (error) {
         if (error.response?.status === 302) {
-          log.info('===>> Ignoring BhavCopy from url');
+          log.info('===>> File Not Found!');
           this.#noOfConnections--;
 
           return;

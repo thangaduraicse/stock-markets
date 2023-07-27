@@ -44,6 +44,13 @@ class BSEIndia {
         this.#noOfConnections--;
         return response.data;
       } catch (error) {
+        if (error.response?.status === 404) {
+          log.info('===>> File Not Found!');
+          this.#noOfConnections--;
+
+          return;
+        }
+
         log.error(`Retrying getting BhavCopy: ${error.message}`);
         hasError = true;
         retries++;

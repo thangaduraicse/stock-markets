@@ -1,5 +1,5 @@
 import { basename } from 'node:path';
-import { NSEIndia } from '../base/index.js';
+import { BSEIndia } from '../base/index.js';
 import {
   checkFileExist,
   extractZipFile,
@@ -8,37 +8,23 @@ import {
 } from '../helpers/index.js';
 import logger from '../logger.js';
 
-const ABBREVIATED_MONTH_NAMES = [
-  'JAN',
-  'FEB',
-  'MAR',
-  'APR',
-  'MAY',
-  'JUN',
-  'JUL',
-  'AUG',
-  'SEP',
-  'OCT',
-  'NOV',
-  'DEC',
-];
-const log = logger('DownloadNSEBhavCopy');
+const log = logger('DownloadBSEBhavCopy');
 
-class DownloadNSEBhavCopy extends NSEIndia {
+class DownloadBSEBhavCopy extends BSEIndia {
   #type;
 
   static get BhavCopyTypes() {
     return {
-      derivatives: 'DERIVATIVES',
-      equities: 'EQUITIES',
+      derivatives: 'Derivative',
+      equities: 'Equity',
     };
   }
 
   static validateConfig(type) {
     log.info('Validating config before instantiate');
     switch (type) {
-      case DownloadNSEBhavCopy.BhavCopyTypes.derivatives:
-      case DownloadNSEBhavCopy.BhavCopyTypes.equities: {
+      case DownloadBSEBhavCopy.BhavCopyTypes.derivatives:
+      case DownloadBSEBhavCopy.BhavCopyTypes.equities: {
         return true;
       }
 
@@ -49,7 +35,7 @@ class DownloadNSEBhavCopy extends NSEIndia {
   }
 
   constructor(type) {
-    DownloadNSEBhavCopy.validateConfig(type);
+    DownloadBSEBhavCopy.validateConfig(type);
 
     log.info('Initiate downloading...');
     super();
@@ -59,26 +45,22 @@ class DownloadNSEBhavCopy extends NSEIndia {
   #getDayMonthAndYear(passedDate) {
     const date = new Date(passedDate);
     const day = String(date.getDate()).padStart(2, '0');
-    const month = ABBREVIATED_MONTH_NAMES[date.getMonth()];
-    const year = String(date.getFullYear());
+    const month = String(date.getMonth()).padStart(2, '0');
+    const year = String(date.getFullYear()).slice(-2);
 
     return [day, month, year];
   }
 
   #buildUrl(date) {
     const [day, month, year] = this.#getDayMonthAndYear(date);
-    if (this.#type === DownloadNSEBhavCopy.BhavCopyTypes.derivatives) {
-      return (
-        'https://archives.nseindia.com/content/historical/DERIVATIVES/' +
-        `${year}/${month}/fo${day}${month}${year}bhav.csv.zip`
-      );
+    if (this.#type === DownloadBSEBhavCopy.BhavCopyTypes.derivatives) {
+      const fileName = `bhavcopy${day}-${month}-${year}.zip`;
+      return `https://www.bseindia.com/download/Bhavcopy/Derivative/${fileName}`;
     }
 
-    if (this.#type === DownloadNSEBhavCopy.BhavCopyTypes.equities) {
-      return (
-        'https://archives.nseindia.com/content/historical/EQUITIES/' +
-        `${year}/${month}/cm${day}${month}${year}bhav.csv.zip`
-      );
+    if (this.#type === DownloadBSEBhavCopy.BhavCopyTypes.equities) {
+      const fileName = `EQ${day}${month}${year}_CSV.ZIP`;
+      return `https://www.bseindia.com/download/BhavCopy/Equity/${fileName}`;
     }
   }
 
@@ -117,7 +99,7 @@ class DownloadNSEBhavCopy extends NSEIndia {
       if (data) {
         log.info('Writing the csv to bhavcopy folder');
         const filePath = await writeToTemporaryFolder(fileName, data);
-        await extractZipFile(filePath, 'nse', this.#type.toLowerCase());
+        await extractZipFile(filePath, 'bse', this.#type.toLowerCase());
         await unlinkFileFromPath(filePath);
         log.info('Successfully the csv downloaded in bhavcopy folder');
       }
@@ -131,7 +113,7 @@ class DownloadNSEBhavCopy extends NSEIndia {
 
     for (const url of urls) {
       const fileName = this.#getFileNameFromURL(url);
-      const fileNameExist = await checkFileExist(fileName, 'nse', this.#type.toLowerCase());
+      const fileNameExist = await checkFileExist(fileName, 'bse', this.#type.toLowerCase());
 
       if (fileNameExist) {
         log.info(`File is already downloaded for URL - ${url}`);
@@ -155,9 +137,9 @@ class DownloadNSEBhavCopy extends NSEIndia {
 try {
   let instance;
 
-  instance = new DownloadNSEBhavCopy(DownloadNSEBhavCopy.BhavCopyTypes.derivatives);
+  instance = new DownloadBSEBhavCopy(DownloadBSEBhavCopy.BhavCopyTypes.derivatives);
   await instance.downloadForLastNyears(10);
-  instance = new DownloadNSEBhavCopy(DownloadNSEBhavCopy.BhavCopyTypes.equities);
+  instance = new DownloadBSEBhavCopy(DownloadBSEBhavCopy.BhavCopyTypes.equities);
   await instance.downloadForLastNyears(10);
 } catch (error) {
   console.error(error);
