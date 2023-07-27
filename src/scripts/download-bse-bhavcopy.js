@@ -3,6 +3,7 @@ import { BSEIndia } from '../base/index.js';
 import {
   checkFileExist,
   extractZipFile,
+  sleep,
   unlinkFileFromPath,
   writeToTemporaryFolder,
 } from '../helpers/index.js';
@@ -119,7 +120,9 @@ class DownloadBSEBhavCopy extends BSEIndia {
         log.info(`File is already downloaded for URL - ${url}`);
       } else {
         log.info(`Download url - ${url}`);
+        await sleep(500);
         await this.#downloadFile(url, fileName);
+        await sleep(500);
       }
     }
 
@@ -134,13 +137,4 @@ class DownloadBSEBhavCopy extends BSEIndia {
   }
 }
 
-try {
-  let instance;
-
-  instance = new DownloadBSEBhavCopy(DownloadBSEBhavCopy.BhavCopyTypes.derivatives);
-  await instance.downloadForLastNyears(10);
-  instance = new DownloadBSEBhavCopy(DownloadBSEBhavCopy.BhavCopyTypes.equities);
-  await instance.downloadForLastNyears(10);
-} catch (error) {
-  console.error(error);
-}
+export default DownloadBSEBhavCopy;
