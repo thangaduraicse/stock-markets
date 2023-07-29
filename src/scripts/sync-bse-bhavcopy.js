@@ -1,7 +1,6 @@
 import { basename } from 'node:path';
 import { BSEIndia } from '../base/index.js';
 import {
-  checkFileExist,
   extractZipFile,
   sleep,
   unlinkFileFromPath,
@@ -9,7 +8,7 @@ import {
 } from '../helpers/index.js';
 import Logger from '../logger.js';
 
-const log = new Logger('SyncBSEBhavCopy');
+const { log } = new Logger('src/scripts/sync-base-bhavcopy.js::SyncBSEBhavCopy');
 
 class SyncBSEBhavCopy extends BSEIndia {
   #type;
@@ -46,7 +45,7 @@ class SyncBSEBhavCopy extends BSEIndia {
   #getDayMonthAndYear(passedDate) {
     const date = new Date(passedDate);
     const day = String(date.getDate()).padStart(2, '0');
-    const month = String(date.getMonth()).padStart(2, '0');
+    const month = String(date.getMonth() + 1).padStart(2, '0');
     const year = String(date.getFullYear()).slice(-2);
 
     return [day, month, year];
@@ -96,26 +95,21 @@ class SyncBSEBhavCopy extends BSEIndia {
   async #downloadFile(url) {
     try {
       const fileName = this.#getFileNameFromURL(url);
-      const fileNameExist = await checkFileExist(fileName, 'bse', this.#type.toLowerCase());
 
-      if (fileNameExist) {
-        log.info(`File is already downloaded for URL - ${url}`);
-      } else {
-        log.info(`Download url - ${url}`);
-        await sleep(500);
+      log.info(`Download url - ${url}`);
+      await sleep(500);
 
-        const data = await this.getBhavCopy(url);
+      const data = await this.getBhavCopy(url);
 
-        if (data) {
-          log.info('Writing the csv to bhavcopy folder');
-          const filePath = await writeToTemporaryFolder(fileName, data);
-          await extractZipFile(filePath, 'bse', this.#type.toLowerCase());
-          await unlinkFileFromPath(filePath);
-          log.info('Successfully the csv downloaded in bhavcopy folder');
-        }
-
-        await sleep(500);
+      if (data) {
+        log.info('Writing the csv to bhavcopy folder');
+        const filePath = await writeToTemporaryFolder(fileName, data);
+        await extractZipFile(filePath, 'bse', this.#type.toLowerCase());
+        await unlinkFileFromPath(filePath);
+        log.info('Successfully the csv downloaded in bhavcopy folder');
       }
+
+      await sleep(500);
     } catch (error) {
       log.error(`Error downloading bhavcopy for url: ${url}, error: ${error.message}`);
     }
@@ -131,9 +125,9 @@ class SyncBSEBhavCopy extends BSEIndia {
     log.info('All files downloaded successfully.');
   }
 
-  async downloadToday() {
-    const today = new Date();
-    const url = this.#buildUrl(today);
+  async downloadByDate(date) {
+    const _date = new Date(date);
+    const url = this.#buildUrl(_date);
 
     await this.#downloadFile(url);
   }

@@ -27,7 +27,7 @@ class Logger {
   }
 
   constructor(label) {
-    this.#onInit(label);
+    this.log = this.#onInit(label);
   }
 
   #onInit(label) {
@@ -79,12 +79,12 @@ class Logger {
 
   #getTransports() {
     return [
-      Console(),
-      File({
+      new Console(),
+      new File({
         filename: 'logs/error.log',
         level: 'error',
       }),
-      File({ filename: 'logs/all.log' }),
+      new File({ filename: 'logs/all.log' }),
     ];
   }
 }

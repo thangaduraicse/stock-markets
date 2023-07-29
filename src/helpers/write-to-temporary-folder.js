@@ -1,9 +1,11 @@
 import Logger from '../logger.js';
 import { dirname, join } from 'node:path';
+import { fileURLToPath } from 'node:url';
 import { mkdir, unlink, writeFile } from 'node:fs/promises';
-import { __dirname } from './path-utils.js';
 
-const log = new Logger('WriteToTemporaryFolder');
+export const __dirname = dirname(fileURLToPath(import.meta.url));
+
+const { log } = new Logger('src/helpers/write-to-temporary-folder.js::Utils');
 
 export const writeToTemporaryFolder = async (fileName, data) => {
   const filePath = join(__dirname, `../../temp/${fileName}`);

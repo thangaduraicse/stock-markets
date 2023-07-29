@@ -8,8 +8,8 @@ class NSERouter extends Router {
     super();
     this.#_nseIndia = new NSEIndia();
 
-    this.get('/', this.#homePage);
-    this.get('/api/option-chain', this.#optionChain);
+    this.get('/', this.#homePage.bind(this));
+    this.get('/api/option-chain', this.#optionChain.bind(this));
   }
 
   #homePage(request, response) {
@@ -26,7 +26,7 @@ class NSERouter extends Router {
     const validPayload = NSEIndia.validatePayload(s, t);
 
     if (validPayload) {
-      const url = NSEIndia.getOptionChainURL(s, t);
+      const url = this.#_nseIndia.getOptionChainURL(s, t);
       const data = await this.#_nseIndia.getOptionChainData(url);
 
       response.json(data);

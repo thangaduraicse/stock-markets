@@ -1,7 +1,7 @@
 import axios from 'axios';
 import Logger from '../../logger.js';
 
-const log = new Logger('BSEIndia');
+const { log } = new Logger('src/base/bse/index.js::BSEIndia');
 
 class BSEIndia {
   #baseHeaders;

@@ -1,11 +1,13 @@
-import path from 'node:path';
+import { dirname, join } from 'node:path';
+import { fileURLToPath } from 'node:url';
 import express from 'express';
 import cors from 'cors';
 import compression from 'compression';
 import favicon from 'serve-favicon';
+import morgan from 'morgan';
 import { NSERouter } from './routes/index.js';
-import { __dirname } from './helpers/index.js';
 
+const __dirname = dirname(fileURLToPath(import.meta.url));
 const app = express();
 const nseRouter = new NSERouter();
 const port = process.env.PORT || 54_321;
@@ -26,8 +28,9 @@ app.use(
     extended: true,
   })
 );
+app.use(morgan('combined'));
 app.use(compression());
-app.use(favicon(path.join(__dirname, '..', 'favicon.ico')));
+app.use(favicon(join(__dirname, '..', 'favicon.ico')));
 
 app.disable('x-powered-by');
 

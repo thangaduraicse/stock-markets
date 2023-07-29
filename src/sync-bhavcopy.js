@@ -13,7 +13,7 @@ const handleAction = async (options, cmd) => {
   validateOptions(options);
 
   const commandName = cmd.name();
-  let { from, to, market, lastNyears } = options;
+  let { date, from, to, market, lastNYears } = options;
 
   try {
     let ClassModule;
@@ -34,10 +34,13 @@ const handleAction = async (options, cmd) => {
         to = Number.parseInt(to, 10);
 
         await instance.download(from, to);
-      } else if (lastNyears) {
-        await instance.downloadForLastNyears(lastNyears);
+      } else if (Number.parseInt(lastNYears, 10) > 0) {
+        await instance.downloadForLastNyears(lastNYears);
+      } else if (date) {
+        await instance.downloadByDate(date);
       } else {
-        await instance.downloadToday();
+        const today = new Date();
+        await instance.downloadByDate(today);
       }
     }
   } catch (error) {
@@ -52,16 +55,21 @@ program.name('sync-bhavcopy').description('CLI to Sync BhavCopy from NSE and BSE
 program
   .command('nse')
   .description('Sync BhavCopy from NSE India')
-  .requiredOption('-m, --market <market>', 'NSE Market Type')
+  .requiredOption('-m, --market <market>', 'NSE Market Type', 'EQUITIES')
   .option('-f, --from <from>', 'From Year')
   .option('-t, --to <to>', 'To Year')
-  .option('-n, --last-n-years <lastNyears>', 'Last N years')
+  .option('-n, --last-n-years <lastNYears>', 'Last N years')
+  .option('-d, --date <date>', 'Download by date')
   .addHelpText(
     'after',
     `
   Example usage:
-    npm run sync-bhavcopy -- nse -m DERIVATIVES -f 2014 -t 2023
-    npm run sync-bhavcopy -- nse --market EQUITIES --from 2014 --t0 2023
+    yarn sync-bhavcopy nse -m DERIVATIVES -f 2014 -t 2023
+    yarn sync-bhavcopy nse --market EQUITIES --from 2014 --to 2023
+    yarn sync-bhavcopy nse -m EQUITIES -n 5
+    yarn sync-bhavcopy nse --market DERIVATIVES --last-n-years 5
+    yarn sync-bhavcopy nse --market EQUITIES --date 2023-07-28
+    yarn sync-bhavcopy nse -m DERIVATIVES -d 2023-07-28
   `
   )
   .action(handleAction);
@@ -69,16 +77,21 @@ program
 program
   .command('bse')
   .description('Sync BhavCopy from BSE India')
-  .requiredOption('-m, --market <market>', 'BSE Market Type')
+  .requiredOption('-m, --market <market>', 'BSE Market Type', 'Equity')
   .option('-f, --from <from>', 'From Year')
   .option('-t, --to <to>', 'To Year')
-  .option('-n, --last-n-years <lastNyears>', 'Last N years')
+  .option('-n, --last-n-years <lastNYears>', 'Last N years')
+  .option('-d, --date <date>', 'Download by date')
   .addHelpText(
     'after',
     `
   Example usage:
-    npm run sync-bhavcopy -- bse --market Derivative --from 2014 --t0 2023
-    npm run sync-bhavcopy -- bse -m Equity -f 2014 -t 2023
+    yarn sync-bhavcopy bse --market Derivative --from 2014 --t0 2023
+    yarn sync-bhavcopy bse -m Equity -f 2014 -t 2023
+    yarn sync-bhavcopy bse -m Equity -n 5
+    yarn sync-bhavcopy bse --market Derivative --last-n-years 5
+    yarn sync-bhavcopy bse --market Equity --date 2023-07-28
+    yarn sync-bhavcopy bse -m Derivative -d 2023-07-28
   `
   )
   .action(handleAction);

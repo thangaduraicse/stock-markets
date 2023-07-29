@@ -1,7 +1,7 @@
 import axios from 'axios';
 import Logger from '../../logger.js';
 
-const log = new Logger('NSEIndia');
+const { log } = new Logger('src/base/nse/index.js::NSEIndia');
 
 class NSEIndia {
   #baseHeaders;
@@ -30,19 +30,16 @@ class NSEIndia {
   }
 
   static validatePayload(symbol, type) {
+    if (!symbol || !type) {
+      return false;
+    }
+
     const types = Object.keys(NSEIndia.OptionSymbols);
     const {
       [type]: { symbols },
     } = NSEIndia.OptionSymbols;
 
     return symbols.includes(symbol) && types.includes(type);
-  }
-
-  static getOptionChainURL(symbol, type) {
-    const {
-      [type]: { endpoint },
-    } = NSEIndia.OptionSymbols;
-    return `${this.baseUrl}${endpoint}?symbol=${symbol}`;
   }
 
   constructor(baseUrl) {
@@ -111,33 +108,40 @@ class NSEIndia {
     };
   }
 
+  getOptionChainURL(symbol, type) {
+    const {
+      [type]: { endpoint },
+    } = NSEIndia.OptionSymbols;
+    return `${this.#baseUrl}${endpoint}?symbol=${symbol}`;
+  }
+
   async getOptionChainData(url) {
     let retries = 0;
     let hasError = false;
 
     do {
-      while (this.noOfConnections >= 5) {
+      while (this.#noOfConnections >= 5) {
         await this.#sleep(2000);
       }
 
-      this.noOfConnections++;
+      this.#noOfConnections++;
 
       try {
         const response = await axios.get(url, {
           headers: {
-            ...this.baseHeaders,
-            Cookie: await this.getNseCookies(),
+            ...this.#baseHeaders,
+            Cookie: await this.#getNseCookies(),
           },
           responseType: 'json',
           transformResponse: this.#transformOptionChainResponse,
         });
 
-        this.noOfConnections--;
+        this.#noOfConnections--;
         return response.data;
       } catch (error) {
         hasError = true;
         retries++;
-        this.noOfConnections--;
+        this.#noOfConnections--;
         if (retries >= 10) throw error;
       }
     } while (hasError);

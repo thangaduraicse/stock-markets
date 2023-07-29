@@ -1,7 +1,6 @@
 import { basename } from 'node:path';
 import { NSEIndia } from '../base/index.js';
 import {
-  checkFileExist,
   extractZipFile,
   sleep,
   unlinkFileFromPath,
@@ -23,7 +22,7 @@ const ABBREVIATED_MONTH_NAMES = [
   'NOV',
   'DEC',
 ];
-const log = new Logger('SyncNSEBhavCopy');
+const { log } = new Logger('src/scripts/sync-base-bhavcopy.js::SyncNSEBhavCopy');
 
 class SyncNSEBhavCopy extends NSEIndia {
   #type;
@@ -114,26 +113,21 @@ class SyncNSEBhavCopy extends NSEIndia {
   async #downloadFile(url) {
     try {
       const fileName = this.#getFileNameFromURL(url);
-      const fileNameExist = await checkFileExist(fileName, 'nse', this.#type.toLowerCase());
 
-      if (fileNameExist) {
-        log.info(`File is already downloaded for URL - ${url}`);
-      } else {
-        log.info(`Download url - ${url}`);
-        await sleep(500);
+      log.info(`Download url - ${url}`);
+      await sleep(500);
 
-        const data = await this.getBhavCopy(url);
+      const data = await this.getBhavCopy(url);
 
-        if (data) {
-          log.info('Writing the csv to bhavcopy folder');
-          const filePath = await writeToTemporaryFolder(fileName, data);
-          await extractZipFile(filePath, 'nse', this.#type.toLowerCase());
-          await unlinkFileFromPath(filePath);
-          log.info('Successfully the csv downloaded in bhavcopy folder');
-        }
-
-        await sleep(500);
+      if (data) {
+        log.info('Writing the csv to bhavcopy folder');
+        const filePath = await writeToTemporaryFolder(fileName, data);
+        await extractZipFile(filePath, 'nse', this.#type.toLowerCase());
+        await unlinkFileFromPath(filePath);
+        log.info('Successfully the csv downloaded in bhavcopy folder');
       }
+
+      await sleep(500);
     } catch (error) {
       log.error(`Error downloading bhavcopy for url: ${url}, error: ${error.message}`);
     }
@@ -149,9 +143,9 @@ class SyncNSEBhavCopy extends NSEIndia {
     log.info('All files downloaded successfully.');
   }
 
-  async downloadToday() {
-    const today = new Date();
-    const url = this.#buildUrl(today);
+  async downloadByDate(date) {
+    const _date = new Date(date);
+    const url = this.#buildUrl(_date);
 
     await this.#downloadFile(url);
   }
