@@ -22,7 +22,7 @@
     "build": "babel src --out-dir dist",
     "format": "prettier --write \"**/*.js\"",
     "lint": "eslint --ext .js \"**/*.js\" --fix --no-error-on-unmatched-pattern",
-    "download-bhavcopy": "node src/download-bhavcopy.js",
+    "sync-bhavcopy": "node src/sync-bhavcopy.js",
     "prepare": "husky install",
     "setup": "npm install -g yarn && yarn && yarn prepare",
     "test": "echo \"Error: no test specified\" && exit 1",

@@ -1,5 +1,5 @@
 import { basename } from 'node:path';
-import { BSEIndia } from '../base/index.js';
+import { NSEIndia } from '../base/index.js';
 import {
   checkFileExist,
   extractZipFile,
@@ -9,23 +9,37 @@ import {
 } from '../helpers/index.js';
 import Logger from '../logger.js';
 
-const log = new Logger('DownloadBSEBhavCopy');
+const ABBREVIATED_MONTH_NAMES = [
+  'JAN',
+  'FEB',
+  'MAR',
+  'APR',
+  'MAY',
+  'JUN',
+  'JUL',
+  'AUG',
+  'SEP',
+  'OCT',
+  'NOV',
+  'DEC',
+];
+const log = new Logger('SyncNSEBhavCopy');
 
-class DownloadBSEBhavCopy extends BSEIndia {
+class SyncNSEBhavCopy extends NSEIndia {
   #type;
 
   static get BhavCopyTypes() {
     return {
-      derivatives: 'Derivative',
-      equities: 'Equity',
+      derivatives: 'DERIVATIVES',
+      equities: 'EQUITIES',
     };
   }
 
   static validateConfig(type) {
     log.info('Validating config before instantiate');
     switch (type) {
-      case DownloadBSEBhavCopy.BhavCopyTypes.derivatives:
-      case DownloadBSEBhavCopy.BhavCopyTypes.equities: {
+      case SyncNSEBhavCopy.BhavCopyTypes.derivatives:
+      case SyncNSEBhavCopy.BhavCopyTypes.equities: {
         return true;
       }
 
@@ -36,7 +50,7 @@ class DownloadBSEBhavCopy extends BSEIndia {
   }
 
   constructor(type) {
-    DownloadBSEBhavCopy.validateConfig(type);
+    SyncNSEBhavCopy.validateConfig(type);
 
     log.info('Initiate downloading...');
     super();
@@ -46,22 +60,26 @@ class DownloadBSEBhavCopy extends BSEIndia {
   #getDayMonthAndYear(passedDate) {
     const date = new Date(passedDate);
     const day = String(date.getDate()).padStart(2, '0');
-    const month = String(date.getMonth()).padStart(2, '0');
-    const year = String(date.getFullYear()).slice(-2);
+    const month = ABBREVIATED_MONTH_NAMES[date.getMonth()];
+    const year = String(date.getFullYear());
 
     return [day, month, year];
   }
 
   #buildUrl(date) {
     const [day, month, year] = this.#getDayMonthAndYear(date);
-    if (this.#type === DownloadBSEBhavCopy.BhavCopyTypes.derivatives) {
-      const fileName = `bhavcopy${day}-${month}-${year}.zip`;
-      return `https://www.bseindia.com/download/Bhavcopy/Derivative/${fileName}`;
+    if (this.#type === SyncNSEBhavCopy.BhavCopyTypes.derivatives) {
+      return (
+        'https://archives.nseindia.com/content/historical/DERIVATIVES/' +
+        `${year}/${month}/fo${day}${month}${year}bhav.csv.zip`
+      );
     }
 
-    if (this.#type === DownloadBSEBhavCopy.BhavCopyTypes.equities) {
-      const fileName = `EQ${day}${month}${year}_CSV.ZIP`;
-      return `https://www.bseindia.com/download/BhavCopy/Equity/${fileName}`;
+    if (this.#type === SyncNSEBhavCopy.BhavCopyTypes.equities) {
+      return (
+        'https://archives.nseindia.com/content/historical/EQUITIES/' +
+        `${year}/${month}/cm${day}${month}${year}bhav.csv.zip`
+      );
     }
   }
 
@@ -96,7 +114,7 @@ class DownloadBSEBhavCopy extends BSEIndia {
   async #downloadFile(url) {
     try {
       const fileName = this.#getFileNameFromURL(url);
-      const fileNameExist = await checkFileExist(fileName, 'bse', this.#type.toLowerCase());
+      const fileNameExist = await checkFileExist(fileName, 'nse', this.#type.toLowerCase());
 
       if (fileNameExist) {
         log.info(`File is already downloaded for URL - ${url}`);
@@ -109,7 +127,7 @@ class DownloadBSEBhavCopy extends BSEIndia {
         if (data) {
           log.info('Writing the csv to bhavcopy folder');
           const filePath = await writeToTemporaryFolder(fileName, data);
-          await extractZipFile(filePath, 'bse', this.#type.toLowerCase());
+          await extractZipFile(filePath, 'nse', this.#type.toLowerCase());
           await unlinkFileFromPath(filePath);
           log.info('Successfully the csv downloaded in bhavcopy folder');
         }
@@ -146,4 +164,4 @@ class DownloadBSEBhavCopy extends BSEIndia {
   }
 }
 
-export default DownloadBSEBhavCopy;
+export default SyncNSEBhavCopy;

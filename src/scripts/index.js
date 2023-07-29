@@ -1,2 +1,2 @@
-export { default as DownloadBSEBhavCopy } from './download-bse-bhavcopy.js';
-export { default as DownloadNSEBhavCopy } from './download-nse-bhavcopy.js';
+export { default as SyncBSEBhavCopy } from './sync-bse-bhavcopy.js';
+export { default as SyncNSEBhavCopy } from './sync-nse-bhavcopy.js';
