@@ -1,7 +1,7 @@
 import axios from 'axios';
-import logger from '../../logger.js';
+import Logger from '../../logger.js';
 
-const log = logger('BSEIndia');
+const log = new Logger('BSEIndia');
 
 class BSEIndia {
   #baseHeaders;

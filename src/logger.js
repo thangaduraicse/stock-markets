@@ -1,19 +1,92 @@
-import { createLogger, format, transports } from 'winston';
+import { addColors, createLogger, format as winstonAvailableFormats, transports } from 'winston';
 
-const { combine, timestamp, printf, splat, simple, label } = format;
+const { colorize, combine, label, printf, splat, simple, timestamp } = winstonAvailableFormats;
+const { Console, File } = transports;
 
-const loggerFormat = printf(({ level, message, label, timestamp }) => {
-  if (label) {
-    return `${timestamp} [${label}] ${level}: ${message}`;
+class Logger {
+  #label;
+
+  static get Colors() {
+    return {
+      error: 'red',
+      warn: 'yellow',
+      info: 'green',
+      http: 'magenta',
+      debug: 'white',
+    };
   }
 
-  return `${timestamp} ${level}: ${message}`;
-});
+  static get Levels() {
+    return {
+      error: 0,
+      warn: 1,
+      info: 2,
+      http: 3,
+      debug: 4,
+    };
+  }
 
-const logger = (labelText) =>
-  createLogger({
-    format: combine(label({ label: labelText }), timestamp(), splat(), simple(), loggerFormat),
-    transports: [new transports.Console()],
-  });
+  constructor(label) {
+    this.#onInit(label);
+  }
 
-export default logger;
+  #onInit(label) {
+    addColors(Logger.Colors);
+
+    const level = this.#getLevel();
+    const levels = Logger.Levels;
+    const format = this.#getFormat(label);
+    const transports = this.#getTransports();
+
+    return createLogger({ level, levels, format, transports });
+  }
+
+  #getLevel() {
+    const environment = process.env.NODE_ENV || 'development';
+
+    switch (environment) {
+      case 'development': {
+        return 'debug';
+      }
+      case 'testing': {
+        return 'info';
+      }
+      case 'production': {
+        return 'error';
+      }
+      default: {
+        return 'warn';
+      }
+    }
+  }
+
+  #getFormat(labelText) {
+    return combine(
+      label({ label: labelText }),
+      timestamp({ format: 'YYYY-MM-DD HH:mm:ss:ms' }),
+      splat(),
+      simple(),
+      colorize({ all: true }),
+      printf(({ level, message, label, timestamp }) => {
+        if (label) {
+          return `${timestamp} [${label}] ${level}: ${message}`;
+        }
+
+        return `${timestamp} ${level}: ${message}`;
+      })
+    );
+  }
+
+  #getTransports() {
+    return [
+      Console(),
+      File({
+        filename: 'logs/error.log',
+        level: 'error',
+      }),
+      File({ filename: 'logs/all.log' }),
+    ];
+  }
+}
+
+export default Logger;

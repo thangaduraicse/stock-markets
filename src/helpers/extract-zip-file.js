@@ -1,10 +1,10 @@
 import AdmZip from 'adm-zip';
-import logger from '../logger.js';
+import Logger from '../logger.js';
 import { dirname, join } from 'node:path';
 import { access, mkdir } from 'node:fs/promises';
 import { __dirname } from './path-utils.js';
 
-const log = logger('ExtractZipFile');
+const log = new Logger('ExtractZipFile');
 
 export const extractZipFile = async (zipFilePath, exchange, type) => {
   log.info(`Extract file from zip present in file path: ${zipFilePath}`);

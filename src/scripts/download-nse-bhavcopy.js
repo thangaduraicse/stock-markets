@@ -7,7 +7,7 @@ import {
   unlinkFileFromPath,
   writeToTemporaryFolder,
 } from '../helpers/index.js';
-import logger from '../logger.js';
+import Logger from '../logger.js';
 
 const ABBREVIATED_MONTH_NAMES = [
   'JAN',
@@ -23,7 +23,7 @@ const ABBREVIATED_MONTH_NAMES = [
   'NOV',
   'DEC',
 ];
-const log = logger('DownloadNSEBhavCopy');
+const log = new Logger('DownloadNSEBhavCopy');
 
 class DownloadNSEBhavCopy extends NSEIndia {
   #type;

@@ -7,9 +7,9 @@ import {
   unlinkFileFromPath,
   writeToTemporaryFolder,
 } from '../helpers/index.js';
-import logger from '../logger.js';
+import Logger from '../logger.js';
 
-const log = logger('DownloadBSEBhavCopy');
+const log = new Logger('DownloadBSEBhavCopy');
 
 class DownloadBSEBhavCopy extends BSEIndia {
   #type;

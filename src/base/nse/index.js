@@ -1,7 +1,7 @@
 import axios from 'axios';
-import logger from '../../logger.js';
+import Logger from '../../logger.js';
 
-const log = logger('NSEIndia');
+const log = new Logger('NSEIndia');
 
 class NSEIndia {
   #baseHeaders;
@@ -11,6 +11,39 @@ class NSEIndia {
   #cookieMaxAge;
   #cookieExpiry;
   #noOfConnections;
+
+  static get OptionSymbols() {
+    return {
+      index: {
+        endpoint: '/api/option-chain-indices',
+        symbols: ['NIFTY', 'FINNIFTY', 'BANKNIFTY', 'MIDCPNIFTY'],
+      },
+      currency: {
+        endpoint: '/api/option-chain-currency',
+        symbols: ['USDINR', 'EURINR', 'GBPINR', 'JPYINR', 'EURUSD', 'GBPUSD', 'USDJPY'],
+      },
+      commodity: {
+        endpoint: '/api/option-chain-com',
+        symbols: ['COPPER', 'GOLDM', 'SILVER'],
+      },
+    };
+  }
+
+  static validatePayload(symbol, type) {
+    const types = Object.keys(NSEIndia.OptionSymbols);
+    const {
+      [type]: { symbols },
+    } = NSEIndia.OptionSymbols;
+
+    return symbols.includes(symbol) && types.includes(type);
+  }
+
+  static getOptionChainURL(symbol, type) {
+    const {
+      [type]: { endpoint },
+    } = NSEIndia.OptionSymbols;
+    return `${this.baseUrl}${endpoint}?symbol=${symbol}`;
+  }
 
   constructor(baseUrl) {
     this.#baseHeaders = {
@@ -54,6 +87,60 @@ class NSEIndia {
 
     this.#cookieUsedCount++;
     return this.#cookies;
+  }
+
+  #transformOptionChainResponse(response) {
+    const { records } = JSON.parse(response);
+
+    let data = new Map();
+
+    if (records.data) {
+      for (const record of records.data) {
+        const { expiryDate } = record;
+        const _records = data.has(expiryDate) ? [...data.get(expiryDate), record] : [record];
+        data.set(expiryDate, _records);
+      }
+    }
+
+    return {
+      data: Object.fromEntries(data),
+      expiryDates: records.expiryDates,
+      strikePrices: records.strikePrices,
+      timestamp: records.timestamp,
+      underlyingValue: records.underlyingValue,
+    };
+  }
+
+  async getOptionChainData(url) {
+    let retries = 0;
+    let hasError = false;
+
+    do {
+      while (this.noOfConnections >= 5) {
+        await this.#sleep(2000);
+      }
+
+      this.noOfConnections++;
+
+      try {
+        const response = await axios.get(url, {
+          headers: {
+            ...this.baseHeaders,
+            Cookie: await this.getNseCookies(),
+          },
+          responseType: 'json',
+          transformResponse: this.#transformOptionChainResponse,
+        });
+
+        this.noOfConnections--;
+        return response.data;
+      } catch (error) {
+        hasError = true;
+        retries++;
+        this.noOfConnections--;
+        if (retries >= 10) throw error;
+      }
+    } while (hasError);
   }
 
   async getBhavCopy(url, ignoreNSECookies = true) {
