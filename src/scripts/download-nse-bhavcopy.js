@@ -111,16 +111,28 @@ class DownloadNSEBhavCopy extends NSEIndia {
     return basename(pathname);
   }
 
-  async #downloadFile(url, fileName) {
+  async #downloadFile(url) {
     try {
-      const data = await this.getBhavCopy(url);
+      const fileName = this.#getFileNameFromURL(url);
+      const fileNameExist = await checkFileExist(fileName, 'nse', this.#type.toLowerCase());
 
-      if (data) {
-        log.info('Writing the csv to bhavcopy folder');
-        const filePath = await writeToTemporaryFolder(fileName, data);
-        await extractZipFile(filePath, 'nse', this.#type.toLowerCase());
-        await unlinkFileFromPath(filePath);
-        log.info('Successfully the csv downloaded in bhavcopy folder');
+      if (fileNameExist) {
+        log.info(`File is already downloaded for URL - ${url}`);
+      } else {
+        log.info(`Download url - ${url}`);
+        await sleep(500);
+
+        const data = await this.getBhavCopy(url);
+
+        if (data) {
+          log.info('Writing the csv to bhavcopy folder');
+          const filePath = await writeToTemporaryFolder(fileName, data);
+          await extractZipFile(filePath, 'nse', this.#type.toLowerCase());
+          await unlinkFileFromPath(filePath);
+          log.info('Successfully the csv downloaded in bhavcopy folder');
+        }
+
+        await sleep(500);
       }
     } catch (error) {
       log.error(`Error downloading bhavcopy for url: ${url}, error: ${error.message}`);
@@ -131,20 +143,17 @@ class DownloadNSEBhavCopy extends NSEIndia {
     const urls = this.#generateURLsForYears(from, to);
 
     for (const url of urls) {
-      const fileName = this.#getFileNameFromURL(url);
-      const fileNameExist = await checkFileExist(fileName, 'nse', this.#type.toLowerCase());
-
-      if (fileNameExist) {
-        log.info(`File is already downloaded for URL - ${url}`);
-      } else {
-        log.info(`Download url - ${url}`);
-        await sleep(500);
-        await this.#downloadFile(url, fileName);
-        await sleep(500);
-      }
+      await this.#downloadFile(url);
     }
 
     log.info('All files downloaded successfully.');
+  }
+
+  async downloadToday() {
+    const today = new Date();
+    const url = this.#buildUrl(today);
+
+    await this.#downloadFile(url);
   }
 
   async downloadForLastNyears(numberOfYears = 10) {
