@@ -1,9 +1,9 @@
 async function downloadBhavcopy(days) {
-  const baseUrl = "https://www.nseindia.com/api/reports";
+  const baseUrl = 'https://www.nseindia.com/api/reports';
   // const archiveParam = encodeURIComponent(
   //   '[{"name":"CM-UDiFF Common Bhavcopy Final (zip)","type":"daily-reports","category":"capital-market","section":"equities"}]'
   // );
-  const archiveParam = encodeURIComponent(
+  const archiveParameter = encodeURIComponent(
     '[{"name":"CM - Bhavcopy(csv)","type":"archives","category":"capital-market","section":"equities"}]'
   );
   let count = 0;
@@ -11,20 +11,20 @@ async function downloadBhavcopy(days) {
   let currentDate = new Date(2023, 11, 31);
 
   function formatDate(date) {
-    const day = date.getDate().toString().padStart(2, "0");
+    const day = date.getDate().toString().padStart(2, '0');
     const monthNames = [
-      "Jan",
-      "Feb",
-      "Mar",
-      "Apr",
-      "May",
-      "Jun",
-      "Jul",
-      "Aug",
-      "Sep",
-      "Oct",
-      "Nov",
-      "Dec",
+      'Jan',
+      'Feb',
+      'Mar',
+      'Apr',
+      'May',
+      'Jun',
+      'Jul',
+      'Aug',
+      'Sep',
+      'Oct',
+      'Nov',
+      'Dec',
     ];
     const month = monthNames[date.getMonth()];
     const year = date.getFullYear();
@@ -32,8 +32,8 @@ async function downloadBhavcopy(days) {
   }
 
   function getFileName(date) {
-    const day = date.getDate().toString().padStart(2, "0");
-    const month = (date.getMonth() + 1).toString().padStart(2, "0");
+    const day = date.getDate().toString().padStart(2, '0');
+    const month = (date.getMonth() + 1).toString().padStart(2, '0');
     const year = date.getFullYear();
     return `${year}-${month}-${day}`;
   }
@@ -43,21 +43,21 @@ async function downloadBhavcopy(days) {
     if (currentDate.getDay() !== 0 && currentDate.getDay() !== 6) {
       const formattedDate = formatDate(currentDate);
       const fileName = getFileName(currentDate);
-      const url = `${baseUrl}?archives=${archiveParam}&date=${formattedDate}&type=equities&mode=single`;
+      const url = `${baseUrl}?archives=${archiveParameter}&date=${formattedDate}&type=equities&mode=single`;
 
       try {
         const response = await fetch(url, {
-          method: "GET",
-          credentials: "include",
+          method: 'GET',
+          credentials: 'include',
         });
 
         if (response.ok) {
           const blob = await response.blob();
-          const link = document.createElement("a");
-          link.href = window.URL.createObjectURL(blob);
+          const link = document.createElement('a');
+          link.href = globalThis.URL.createObjectURL(blob);
           link.download = `${fileName}.zip`;
           link.click();
-          window.URL.revokeObjectURL(link.href);
+          globalThis.URL.revokeObjectURL(link.href);
           console.log(`Downloaded: [${count}/${days}] ${fileName}.zip`);
           await new Promise((resolve) => setTimeout(resolve, 500));
         } else {

@@ -10,7 +10,7 @@ export default [
   sonarjs.configs.recommended,
   prettier,
   {
-    ignore: ['.git', 'node_modules', 'build', 'package-lock.json'],
+    ignores: ['.git', 'node_modules', 'build', 'package-lock.json'],
     languageOptions: {
       ecmaVersion: 2022,
       sourceType: 'module',
