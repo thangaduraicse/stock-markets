@@ -1,3 +1,4 @@
+import { existsSync } from 'node:fs';
 import { dirname, join } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import express from 'express';
@@ -11,6 +12,7 @@ const __dirname = dirname(fileURLToPath(import.meta.url));
 const app = express();
 const nseRouter = new NSERouter();
 const port = process.env.PORT || 54_321;
+const staticFolderPath = join(__dirname, '..', 'build');
 
 app.use(
   cors({
@@ -34,7 +36,11 @@ app.use(favicon(join(__dirname, '..', 'favicon.ico')));
 
 app.disable('x-powered-by');
 
-app.use('/', nseRouter);
+app.use('/api', nseRouter);
+
+if (existsSync(staticFolderPath)) {
+  app.use(express.static(staticFolderPath));
+}
 
 app.use((__, response) => {
   response.header('Content-Type', 'application/json');

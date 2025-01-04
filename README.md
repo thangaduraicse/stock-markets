@@ -2,8 +2,8 @@
 
   [![License](https://img.shields.io/badge/License-MIT-blue)](#license "Go to license section")
 
-  [![Made with Node](https://img.shields.io/badge/node->=v18.17.0-green)](https://nodejs.org "Go to Node.js homepage")
-  [![Made with Npm](https://img.shields.io/badge/npm->=v9.6.7-blue)](https://www.npmjs.com/ "Go to Npm.js homepage")
+  [![Made with Node](https://img.shields.io/badge/node->=v22.12.0-green)](https://nodejs.org "Go to Node.js homepage")
+  [![Made with Npm](https://img.shields.io/badge/npm->=v10.9.0-blue)](https://www.npmjs.com/ "Go to Npm.js homepage")
 
   <br/>
 </div>
@@ -13,9 +13,7 @@
 - [Overview](#overview)
 - [Features](#features)
 - [System Requirements](#system-requirements)
-- [Installation](#installation)
-- [Configuration](#configuration)
-- [Usage](#usage)
+- [Getting started](#getting-started)
 - [License](#license)
 
 <br />
